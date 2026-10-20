@@ -579,10 +579,53 @@
       margin: 0
     }
 
+    .music-btn {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 30;
+      border: 1px solid rgba(255, 215, 106, .85);
+      border-radius: 999px;
+      padding: 9px 16px;
+      color: #8c174a;
+      background: rgba(255, 255, 255, .88);
+      backdrop-filter: blur(12px);
+      font-size: .82rem;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(136, 14, 79, .15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform .2s, box-shadow .2s, background .2s
+    }
+
+    .music-btn:hover {
+      transform: scale(1.05);
+      background: #fff;
+      box-shadow: 0 6px 20px rgba(136, 14, 79, .22)
+    }
+
+    .music-btn.playing .music-icon {
+      animation: musicRotate 3.5s linear infinite
+    }
+
+    @keyframes musicRotate {
+      from { transform: rotate(0deg) }
+      to { transform: rotate(360deg) }
+    }
+
     @media(max-width:600px) {
       .close-card-btn {
         width: 100%;
         max-width: 280px
+      }
+
+      .music-btn {
+        top: 12px;
+        right: 12px;
+        padding: 7px 12px;
+        font-size: .75rem
       }
 
       .music-panel {
@@ -612,23 +655,37 @@
       opacity: .9
     }
 
+    .app.opening {
+      padding: 32px 18px 36px;
+      justify-content: flex-start
+    }
+
+    .opening .intro {
+      margin-bottom: 14px
+    }
+
     .opening .envelope-wrap {
-      transform: translateY(18px) scale(.96);
+      transform: translateY(12px) scale(.96);
       opacity: 0;
-      transition: transform .75s .15s, opacity .65s .2s
+      transition: transform .35s, opacity .35s
     }
 
     .opening .tap-hint {
-      opacity: 0
+      opacity: 0;
+      max-height: 0;
+      margin: 0;
+      overflow: hidden;
+      transition: opacity .3s, max-height .3s
     }
 
-    .opening .card-shell {
+    .opening.card-opened .envelope-stage {
+      display: none
+    }
+
+    .opening.card-opened .card-shell {
       display: block;
-      animation: cardEnter 1s .45s cubic-bezier(.16, 1, .3, 1) both
-    }
-
-    .opening .envelope-stage {
-      transition: opacity .6s .25s
+      margin-top: 4px;
+      animation: cardEnter .75s cubic-bezier(.16, 1, .3, 1) both
     }
 
     .opening .envelope-wrap,
@@ -790,6 +847,9 @@
 
 <body>
   <canvas id="petals" aria-hidden="true"></canvas><canvas id="fx" aria-hidden="true"></canvas>
+  <button id="musicToggle" class="music-btn" type="button" aria-label="Bật hoặc tắt nhạc">
+    <span class="music-icon">🎵</span> <span id="musicBtnText">Bật nhạc</span>
+  </button>
   <main class="app" id="app">
     <p class="brand">DHP · Gửi trọn yêu thương</p>
     <p class="eyebrow">Vietnamese Women's Day · 20.10</p>
@@ -915,6 +975,10 @@
         <div class="close-card-wrap">
           <button class="close-card-btn" id="closeCard" type="button">✉ Gấp thiệp lại &nbsp; ✨</button>
         </div>
+        <div class="music-panel" id="musicPanel">
+          <p class="music-title">♫ Giai điệu chúc mừng 20/10</p>
+          <p class="music-note">Nhạc piano đang phát · đã tăng cường âm lượng tối đa.</p>
+        </div>
       </article>
       <audio id="bgMusic" loop preload="auto" autoplay>
         <source
@@ -960,9 +1024,17 @@
         particles = particles.filter(p => p.life > 0); for (const p of particles) { p.update(); p.draw(fctx) }
         raf = requestAnimationFrame(animate);
       }
-      // Cố gắng phát nhạc ngay khi trang được mở, bắt đầu từ giây thứ 13.
+      // Cố gắng phát nhạc ngay khi trang được mở, bắt đầu từ giây thứ 12.
       const bgMusic = $('#bgMusic');
+      const musicBtn = $('#musicToggle'), musicBtnText = $('#musicBtnText');
       let audioContext = null, audioGain = null, audioSource = null;
+
+      function updateMusicUI(isPlaying) {
+        if (!musicBtn) return;
+        musicBtn.classList.toggle('playing', isPlaying);
+        if (musicBtnText) musicBtnText.textContent = isPlaying ? 'Tắt nhạc' : 'Bật nhạc';
+      }
+
       async function prepareLouderAudio() {
         if (!bgMusic) return;
         bgMusic.volume = 1;
@@ -973,30 +1045,66 @@
             audioContext = new AudioContextClass();
             audioSource = audioContext.createMediaElementSource(bgMusic);
             audioGain = audioContext.createGain();
-            audioGain.gain.value = 1.6;
+            audioGain.gain.value = 3.2;
+
+            const compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-14, audioContext.currentTime);
+            compressor.knee.setValueAtTime(24, audioContext.currentTime);
+            compressor.ratio.setValueAtTime(8, audioContext.currentTime);
+            compressor.attack.setValueAtTime(0.003, audioContext.currentTime);
+            compressor.release.setValueAtTime(0.25, audioContext.currentTime);
+
             audioSource.connect(audioGain);
-            audioGain.connect(audioContext.destination);
+            audioGain.connect(compressor);
+            compressor.connect(audioContext.destination);
           }
           if (audioContext.state === 'suspended') await audioContext.resume();
         } catch (err) {
-          // If Web Audio is unavailable, retain the browser's maximum volume.
+          // Fallback retained
         }
       }
+
       async function startBackgroundMusic() {
-        if (!bgMusic || !bgMusic.paused) return;
+        if (!bgMusic) return;
         await prepareLouderAudio();
         try {
           if (bgMusic.currentTime < 12) bgMusic.currentTime = 12;
           await bgMusic.play();
-          const note = $('.music-note'); if (note) note.textContent = 'Nhạc piano đang phát · đã tăng cường âm lượng.';
+          updateMusicUI(true);
+          const note = $('.music-note'); if (note) note.textContent = 'Nhạc piano đang phát · đã tăng cường âm lượng tối đa.';
         } catch (err) {
-          const note = $('.music-note'); if (note) note.textContent = 'Nếu trình duyệt chặn tự phát, hãy chạm nhẹ vào màn hình để bật nhạc.';
+          updateMusicUI(false);
+          const note = $('.music-note'); if (note) note.textContent = 'Chạm vào màn hình hoặc nút nhạc để bật âm lượng lớn.';
         }
       }
+
+      if (bgMusic) {
+        bgMusic.addEventListener('play', () => updateMusicUI(true));
+        bgMusic.addEventListener('pause', () => updateMusicUI(false));
+      }
+
+      if (musicBtn) {
+        musicBtn.addEventListener('click', async () => {
+          await prepareLouderAudio();
+          if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
+          if (bgMusic.paused) {
+            if (bgMusic.currentTime < 12) bgMusic.currentTime = 12;
+            bgMusic.play().then(() => updateMusicUI(true)).catch(() => {});
+          } else {
+            bgMusic.pause();
+            updateMusicUI(false);
+          }
+        });
+      }
+
       window.addEventListener('load', startBackgroundMusic, { once: true });
       ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
-        window.addEventListener(evt, () => { if (bgMusic && bgMusic.paused) startBackgroundMusic(); }, { once: true, passive: true });
+        window.addEventListener(evt, async () => {
+          if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
+          if (bgMusic && bgMusic.paused) startBackgroundMusic();
+        }, { once: true, passive: true });
       });
+
       resize(); window.addEventListener('resize', resize, { passive: true }); raf = requestAnimationFrame(animate);
       const app = $('#app'), envelope = $('#openEnvelope');
       function typeWishes() {
@@ -1027,27 +1135,38 @@
         if (isOpen) return;
         isOpen = true;
         app.classList.add('opening');
+        setTimeout(() => {
+          if (isOpen) {
+            app.classList.add('card-opened');
+            window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+          }
+        }, 360);
         $('#introText').textContent = 'Chúc mừng ngày đặc biệt của các chị và các bạn';
         celebration(true);
-        setTimeout(() => burst(W / 2, H * .52, 125, true), 380);
+        setTimeout(() => burst(W / 2, H * .52, 125, true), 350);
         typeWishes();
         const music = $('#bgMusic');
-        $('#musicPanel').classList.add('visible');
+        const mp = $('#musicPanel');
+        if (mp) mp.classList.add('visible');
         if (music) {
-          prepareLouderAudio();
+          prepareLouderAudio().then(() => {
+            if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+          });
           if (music.paused) {
             if (music.currentTime < 12) music.currentTime = 12;
-            music.play().catch(() => { const note = $('.music-note'); if (note) note.textContent = 'Nếu nhạc chưa phát, hãy chạm vào phong bì hoặc màn hình để bắt đầu nghe.'; });
+            music.play().then(() => updateMusicUI(true)).catch(() => {
+              const note = $('.music-note'); if (note) note.textContent = 'Nếu nhạc chưa phát, hãy chạm vào màn hình hoặc nút nhạc để nghe.';
+            });
           }
         }
-        setTimeout(() => $('#cardShell').scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' }), 650);
       }
       function closeCard() {
         if (!isOpen) return;
         const music = $('#bgMusic');
-        if (music) { music.pause(); music.currentTime = 12; }
-        $('#musicPanel').classList.remove('visible');
-        app.classList.remove('opening');
+        if (music) { music.pause(); music.currentTime = 12; updateMusicUI(false); }
+        const mp = $('#musicPanel');
+        if (mp) mp.classList.remove('visible');
+        app.classList.remove('opening', 'card-opened');
         isOpen = false;
         $('#introText').textContent = 'Gửi các chị và các bạn nữ DHP';
         // A small celebration marks the card being folded away.
