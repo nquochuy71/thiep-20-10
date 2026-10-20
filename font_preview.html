@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Mẫu & So Sánh Font Chữ Đẹp 20/10 · DHP</title>
+  <!-- Nhúng các bộ Google Fonts chuẩn hỗ trợ đầy đủ tiếng Việt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Dancing+Script:wght@500;600;700&family=Ephesis&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playball&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #c2185b;
+      --primary-dark: #6c0a37;
+      --bg: #0f0a15;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --border-gold: rgba(212, 175, 55, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at top center, #26122b 0%, #0d0614 100%);
+      color: #f3e9f5;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      padding: 32px 16px 80px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4.5vw, 42px);
+      background: linear-gradient(135deg, #ffd1df 0%, #ff8fb1 50%, #fbd561 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #c4b3cc;
+      font-size: 15px;
+    }
+
+    /* Tabs & Presets bar */
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preset-btn:hover {
+      background: rgba(233, 30, 99, 0.25);
+      border-color: #ff4081;
+      transform: translateY(-1px);
+    }
+
+    .preset-btn.active {
+      background: linear-gradient(135deg, #d81b60 0%, #ad1457 100%);
+      border-color: #ffd1df;
+      box-shadow: 0 4px 18px rgba(216, 27, 96, 0.45);
+      color: #fff;
+    }
+
+    /* Live Card Demo */
+    .card-preview-wrap {
+      background: linear-gradient(145deg, #ffeef4 0%, #fffbf8 50%, #fcedf4 100%);
+      border-radius: 24px;
+      padding: clamp(24px, 5vw, 44px);
+      color: #3b0a24;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-gold);
+      position: relative;
+      margin-bottom: 48px;
+      transition: all 0.3s ease;
+    }
+
+    .badge-ribbon {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .badge-ribbon span {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 999px;
+      background: rgba(194, 24, 91, 0.09);
+      color: #9e144c;
+      border: 1px solid rgba(194, 24, 91, 0.2);
+    }
+
+    .card-subtitle {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8c2a52;
+      margin-bottom: 8px;
+    }
+
+    .demo-recipient {
+      text-align: center;
+      font-size: clamp(2.6rem, 6.5vw, 4.2rem);
+      line-height: 1.15;
+      color: #7e0a40;
+      margin-bottom: 12px;
+      padding: 0 10px;
+      transition: font-family 0.25s ease;
+    }
+
+    .demo-heading {
+      text-align: center;
+      font-size: clamp(1.6rem, 4.2vw, 2.5rem);
+      font-weight: 700;
+      line-height: 1.25;
+      color: #53082a;
+      margin-bottom: 24px;
+      transition: font-family 0.25s ease;
+    }
+
+    .demo-intro {
+      text-align: center;
+      max-width: 620px;
+      margin: 0 auto 32px;
+      font-size: clamp(14px, 2.4vw, 15.5px);
+      line-height: 1.82;
+      color: #4f1d35;
+      transition: font-family 0.25s ease;
+    }
+
+    .wishes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .wish-box {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(220, 160, 185, 0.4);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 16px rgba(120, 20, 60, 0.05);
+    }
+
+    .wish-box h4 {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #720938;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: font-family 0.25s ease;
+    }
+
+    .wish-box p {
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #4a2135;
+      transition: font-family 0.25s ease;
+    }
+
+    /* Info Bar & CSS Export */
+    .combo-info {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .combo-item h5 {
+      color: #ff94b8;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .combo-item .font-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .combo-item .font-role {
+      font-size: 12.5px;
+      color: #bfa5c7;
+    }
+
+    /* Section Header */
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      margin: 40px 0 20px;
+      color: #ffd6e4;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 10px;
+    }
+
+    /* Individual Font Showroom */
+    .font-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s ease;
+    }
+
+    .font-card:hover {
+      border-color: rgba(255, 64, 129, 0.4);
+    }
+
+    .font-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .font-header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .font-category {
+      font-size: 11.5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd1df;
+    }
+
+    .font-sample-big {
+      font-size: clamp(26px, 4vw, 36px);
+      color: #ffeef4;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .font-sample-small {
+      font-size: 14.5px;
+      color: #d1b8d6;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Showcase & Phối Font Chữ 20/10</h1>
+      <p>Bảng thử nghiệm trực quan các bộ font chuẩn tiếng Việt (không lỗi dấu) cho thiệp chúc mừng DHP</p>
+    </header>
+
+    <!-- Chọn Combo Phối Font -->
+    <div class="preset-bar">
+      <button class="preset-btn active" onclick="setPreset(1)">
+        <span>👑</span> Combo 1: Hoàng Gia Quý Phái
+      </button>
+      <button class="preset-btn" onclick="setPreset(2)">
+        <span>🌸</span> Combo 2: Ngọt Ngào Lãng Mạn
+      </button>
+      <button class="preset-btn" onclick="setPreset(3)">
+        <span>✨</span> Combo 3: Thời Trang & Tạp Chí
+      </button>
+      <button class="preset-btn" onclick="setPreset(4)">
+        <span>💖</span> Combo 4: Thân Thiện & Đằm Thắm
+      </button>
+      <button class="preset-btn" onclick="setPreset(5)">
+        <span>🌿</span> Combo 5: Thanh Lịch & Tinh Tế
+      </button>
+    </div>
+
+    <!-- Mẫu Thiệp Trực Quan Áp Dụng Ngay -->
+    <div class="card-preview-wrap" id="cardPreview">
+      <div class="badge-ribbon">
+        <span>Vietnamese Women's Day · 20.10</span>
+      </div>
+      <div class="card-subtitle" id="demoSubtitle">Em thân gửi lời chúc đến</div>
+      <div class="demo-recipient" id="demoRecipient">Các chị và các bạn nữ DHP</div>
+      <div class="demo-heading" id="demoHeading">Chúc mừng Ngày Phụ nữ Việt Nam 20/10</div>
+      <div class="demo-intro" id="demoIntro">
+        Nhân ngày 20/10, em xin gửi đến các chị và các bạn những lời chúc tốt đẹp nhất. Cảm ơn mọi người vì sự nhiệt tình, những sẻ chia và năng lượng tích cực trong công việc hằng ngày.
+      </div>
+
+      <div class="wishes-grid">
+        <div class="wish-box">
+          <h4 id="demoWishH1">💖 Sức khỏe và sự an yên</h4>
+          <p id="demoWishP1">Chúc các chị và các bạn luôn mạnh khỏe, vui vẻ; công việc thuận lợi và lúc nào cũng có thời gian chăm sóc bản thân.</p>
+        </div>
+        <div class="wish-box">
+          <h4 id="demoWishH2">🌸 Vẻ đẹp và sự tự tin</h4>
+          <p id="demoWishP2">Chúc các chị và các bạn luôn tự tin, rạng rỡ theo cách riêng, luôn thấy vui với những điều mình lựa chọn và theo đuổi.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thông Tin Bộ Font Đang Chọn -->
+    <div class="combo-info" id="comboInfo">
+      <!-- Cập nhật tự động qua JS -->
+    </div>
+
+    <!-- Bảng Chi Tiết Từng Phông Chữ Đơn Lẻ -->
+    <h2 class="section-title">1. Nhóm Thư Pháp & Viết Tay (Calligraphy / Script)</h2>
+    <p style="color: #c4b3cc; margin-bottom: 16px; font-size: 14px;">Thích hợp nhất cho: Tên người nhận (<em>"Các chị và các bạn nữ DHP"</em>), chữ ký, lời đề tặng thân thương.</p>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Great Vibes</div>
+        <div class="font-category">Calligraphy Cổ Điển</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Great Vibes', cursive;">
+        Các chị và các bạn nữ DHP thân yêu
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Nét uốn lượn bay bổng, quý phái, đậm chất cổ điển Châu Âu. Dấu tiếng Việt thanh thoát, uyển chuyển.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Dancing Script</div>
+        <div class="font-category">Cursive Hiện Đại (Đang dùng)</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Dancing Script', cursive;">
+        Các chị và các bạn nữ DHP thân yêu
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Tự nhiên như nét bút viết tay đời thường, vui tươi, trẻ trung, rất rõ ràng dễ đọc trên cả điện thoại.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Alex Brush</div>
+        <div class="font-category">Thư Pháp Nét Bút Lông</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Alex Brush', cursive;">
+        Các chị và các bạn nữ DHP thân yêu
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Mềm mại, nét thanh nét đậm chuẩn mực nghệ thuật thư pháp bút lông, sang trọng và dịu dàng.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Ephesis</div>
+        <div class="font-category">Thư Pháp Mảnh Bay Bổng</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Ephesis', cursive; font-size: 40px;">
+        Các chị và các bạn nữ DHP thân yêu
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Nét chữ mảnh, nghiêng dài lãng mạn như những lá thư tình viết tay của thế kỷ trước.
+      </div>
+    </div>
+
+    <h2 class="section-title">2. Nhóm Chân Có Khía (Serif) — Trang Trọng & Nữ Tính</h2>
+    <p style="color: #c4b3cc; margin-bottom: 16px; font-size: 14px;">Thích hợp nhất cho: Tiêu đề thiệp (<em>"Chúc mừng Ngày Phụ nữ Việt Nam 20/10"</em>), ngày tháng, tước hiệu.</p>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Playfair Display</div>
+        <div class="font-category">Serif Tạp Chí Nữ Tính (Đang dùng)</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Playfair Display', serif; font-weight: 700;">
+        Chúc mừng Ngày Phụ nữ Việt Nam 20/10
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Đỉnh cao của phong cách tạp chí thời trang nữ. Tương phản nét thanh nét đậm cao, quý phái và lộng lẫy.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Cormorant Garamond</div>
+        <div class="font-category">Serif Hoàng Gia Quý Tộc</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Cormorant Garamond', serif; font-weight: 700;">
+        Chúc mừng Ngày Phụ nữ Việt Nam 20/10
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Lấy cảm hứng từ thời Phục hưng, đường nét sắc sảo, kiêu kỳ, mang lại cảm giác cực kỳ sang trọng.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Lora</div>
+        <div class="font-category">Serif Đằm Thắm & Dịu Mắt</div>
+      </div>
+      <div class="font-sample-big" style="font-family: 'Lora', serif; font-weight: 600;">
+        Chúc mừng Ngày Phụ nữ Việt Nam 20/10
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif;">
+        <strong>Đặc tính:</strong> Chân chữ bo nhẹ mềm mại, ấm cúng và dịu dàng, tạo cảm xúc ấm áp gần gũi.
+      </div>
+    </div>
+
+    <h2 class="section-title">3. Nhóm Không Chân (Sans-serif) — Đọc Êm Ái & Rõ Nét Tuyệt Đối</h2>
+    <p style="color: #c4b3cc; margin-bottom: 16px; font-size: 14px;">Thích hợp nhất cho: Các đoạn văn lời chúc dài, phụ đề, nội dung trên màn hình điện thoại nhỏ.</p>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Be Vietnam Pro</div>
+        <div class="font-category">Chuyên Biệt Tiếng Việt (Đang dùng)</div>
+      </div>
+      <div class="font-sample-small" style="font-family: 'Be Vietnam Pro', sans-serif; font-size: 16px;">
+        Em chúc các chị và các bạn luôn mạnh khỏe, vui vẻ; công việc thuận lợi và lúc nào cũng có thời gian chăm sóc bản thân, ở bên gia đình và những người thân yêu.
+      </div>
+      <div class="font-sample-small" style="margin-top: 8px;">
+        <strong>Đặc tính:</strong> Thiết kế riêng để tối ưu dấu thanh tiếng Việt (hỏi, ngã, sắc, huyền, nặng), không bao giờ bị lệch dấu hay đè chữ.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Montserrat</div>
+        <div class="font-category">Hình Học & Sang Trọng</div>
+      </div>
+      <div class="font-sample-small" style="font-family: 'Montserrat', sans-serif; font-size: 15.5px;">
+        Em chúc các chị và các bạn luôn mạnh khỏe, vui vẻ; công việc thuận lợi và lúc nào cũng có thời gian chăm sóc bản thân, ở bên gia đình và những người thân yêu.
+      </div>
+      <div class="font-sample-small" style="margin-top: 8px;">
+        <strong>Đặc tính:</strong> Nét chữ tròn trịa, hiện đại, mang lại vẻ đẹp năng động, tươi sáng và tự tin.
+      </div>
+    </div>
+
+    <div class="font-card">
+      <div class="font-header">
+        <div class="font-header-title">Quicksand</div>
+        <div class="font-category">Bo Tròn Ngọt Ngào & Ấm Áp</div>
+      </div>
+      <div class="font-sample-small" style="font-family: 'Quicksand', sans-serif; font-size: 16px; font-weight: 500;">
+        Em chúc các chị và các bạn luôn mạnh khỏe, vui vẻ; công việc thuận lợi và lúc nào cũng có thời gian chăm sóc bản thân, ở bên gia đình và những người thân yêu.
+      </div>
+      <div class="font-sample-small" style="margin-top: 8px;">
+        <strong>Đặc tính:</strong> Các đầu mút bo cong tròn trịa, tạo cảm giác dễ thương, ngọt ngào và đầy ắp sự quan tâm.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const presets = {
+      1: {
+        name: "Hoàng Gia Quý Phái (Royal Elegance)",
+        recipientFont: "'Great Vibes', cursive",
+        headingFont: "'Playfair Display', serif",
+        bodyFont: "'Be Vietnam Pro', sans-serif",
+        descRecipient: "Great Vibes (Thư pháp uyển chuyển hoàng gia)",
+        descHeading: "Playfair Display (Tạp chí thời trang cao cấp)",
+        descBody: "Be Vietnam Pro (Cân đối dấu tiếng Việt tuyệt đối)"
+      },
+      2: {
+        name: "Ngọt Ngào Lãng Mạn (Modern Romantic — Bản hiện tại)",
+        recipientFont: "'Dancing Script', cursive",
+        headingFont: "'Playfair Display', serif",
+        bodyFont: "'Be Vietnam Pro', sans-serif",
+        descRecipient: "Dancing Script (Viết tay tự nhiên, gần gũi)",
+        descHeading: "Playfair Display (Serif sang trọng)",
+        descBody: "Be Vietnam Pro (Dễ đọc, êm mắt)"
+      },
+      3: {
+        name: "Thời Trang & Tạp Chí (Haute Couture)",
+        recipientFont: "'Alex Brush', cursive",
+        headingFont: "'Cormorant Garamond', serif",
+        bodyFont: "'Montserrat', sans-serif",
+        descRecipient: "Alex Brush (Nét bút lông mềm mại)",
+        descHeading: "Cormorant Garamond (Serif sắc sảo kiêu kỳ)",
+        descBody: "Montserrat (Hiện đại, thoáng mắt)"
+      },
+      4: {
+        name: "Thân Thiện & Đằm Thắm (Warm & Sweet)",
+        recipientFont: "'Playball', cursive",
+        headingFont: "'Lora', serif",
+        bodyFont: "'Quicksand', sans-serif",
+        descRecipient: "Playball (Đầm tay, cá tính)",
+        descHeading: "Lora (Ấm áp, đằm thắm)",
+        descBody: "Quicksand (Bo tròn ngọt ngào)"
+      },
+      5: {
+        name: "Thanh Lịch & Tinh Tế (Vintage Velvet)",
+        recipientFont: "'Ephesis', cursive",
+        headingFont: "'Cormorant Garamond', serif",
+        bodyFont: "'Plus Jakarta Sans', sans-serif",
+        descRecipient: "Ephesis (Thơ mộng, bay bổng cổ điển)",
+        descHeading: "Cormorant Garamond (Thanh lịch)",
+        descBody: "Plus Jakarta Sans (Chuẩn mực tối giản)"
+      }
+    };
+
+    function setPreset(id) {
+      document.querySelectorAll('.preset-btn').forEach((btn, index) => {
+        btn.classList.toggle('active', index + 1 === id);
+      });
+
+      const p = presets[id];
+      const recipient = document.getElementById('demoRecipient');
+      const heading = document.getElementById('demoHeading');
+      const intro = document.getElementById('demoIntro');
+      const wishH1 = document.getElementById('demoWishH1');
+      const wishH2 = document.getElementById('demoWishH2');
+      const wishP1 = document.getElementById('demoWishP1');
+      const wishP2 = document.getElementById('demoWishP2');
+
+      recipient.style.fontFamily = p.recipientFont;
+      heading.style.fontFamily = p.headingFont;
+      intro.style.fontFamily = p.bodyFont;
+      wishH1.style.fontFamily = p.headingFont;
+      wishH2.style.fontFamily = p.headingFont;
+      wishP1.style.fontFamily = p.bodyFont;
+      wishP2.style.fontFamily = p.bodyFont;
+
+      // Cập nhật thông tin chi tiết
+      document.getElementById('comboInfo').innerHTML = `
+        <div class="combo-item">
+          <h5>Tên Người Nhận (Calligraphy)</h5>
+          <div class="font-name">${p.descRecipient}</div>
+        </div>
+        <div class="combo-item">
+          <h5>Tiêu Đề Lớn (Heading)</h5>
+          <div class="font-name">${p.descHeading}</div>
+        </div>
+        <div class="combo-item">
+          <h5>Nội Dung Lời Chúc (Body)</h5>
+          <div class="font-name">${p.descBody}</div>
+        </div>
+      `;
+    }
+
+    // Khởi tạo combo 1
+    setPreset(1);
+  </script>
+</body>
+</html>
