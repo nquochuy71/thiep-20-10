@@ -619,6 +619,12 @@
       transition: transform .25s ease, box-shadow .25s ease;
     }
 
+    .wish.reading {
+      border-color: rgba(212, 175, 55, .85);
+      box-shadow: 0 12px 34px rgba(216, 27, 96, .16), 0 0 18px rgba(255, 215, 106, .4);
+      transform: translateY(-2px);
+    }
+
     .wish:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 30px rgba(136, 14, 79, .12);
@@ -1280,7 +1286,7 @@
         particles = particles.filter(p => p.life > 0); for (const p of particles) { p.update(); p.draw(fctx) }
         raf = requestAnimationFrame(animate);
       }
-
+      
       const bgMusic = $('#bgMusic');
       const musicBtn = $('#musicToggle'), musicBtnText = $('#musicBtnText');
       let audioContext = null, audioGain = null, audioSource = null;
@@ -1345,7 +1351,7 @@
           if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
           if (bgMusic.paused) {
             if (bgMusic.currentTime < 12) bgMusic.currentTime = 12;
-            bgMusic.play().then(() => updateMusicUI(true)).catch(() => { });
+            bgMusic.play().then(() => updateMusicUI(true)).catch(() => {});
           } else {
             bgMusic.pause();
             updateMusicUI(false);
@@ -1369,33 +1375,245 @@
 
       resize(); window.addEventListener('resize', resize, { passive: true }); raf = requestAnimationFrame(animate);
       const app = $('#app'), envelope = $('#openEnvelope');
-      function typeWishes() {
-        const lines = [...document.querySelectorAll('.typed-line')];
-        lines.forEach(line => { line.textContent = ''; line.classList.remove('done') });
-        let lineIndex = 0;
-        function typeNextLine() {
-          if (lineIndex >= lines.length) return;
-          const line = lines[lineIndex], text = line.dataset.text || '';
-          line.classList.add('typing');
-          let charIndex = 0;
-          function typeChar() {
-            if (charIndex < text.length) {
-              line.textContent += text.charAt(charIndex++);
-              setTimeout(typeChar, reducedMotion ? 0 : 20);
+
+      // --- TÍNH NĂNG ĐỒNG BỘ CUỘN TRANG & CHẠY CHỮ TUẦN TỰ THEO TẦM MẮT ĐỌC ---
+      let autoScrollRaf = null;
+      let isAutoScrolling = false;
+      let userPauseTimer = null;
+      let isUserTouching = false;
+      let currentScrollY = 0;
+      let isCurrentlyTyping = false;
+      let currentTypingWish = null;
+      let wishNextTimer = null;
+
+      function stopAutoScroll() {
+        if (autoScrollRaf) {
+          cancelAnimationFrame(autoScrollRaf);
+          autoScrollRaf = null;
+        }
+        if (userPauseTimer) {
+          clearTimeout(userPauseTimer);
+          userPauseTimer = null;
+        }
+        isAutoScrolling = false;
+        isUserTouching = false;
+      }
+
+      function startAutoScroll(initialDelay = 2600) {
+        stopAutoScroll();
+        if (!isOpen || reducedMotion) return;
+
+        userPauseTimer = setTimeout(() => {
+          if (!isOpen) return;
+          isAutoScrolling = true;
+          currentScrollY = window.scrollY;
+          let lastTime = performance.now();
+
+          function roll(now) {
+            if (!isOpen || !isAutoScrolling) return;
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            if (!isUserTouching) {
+              const isMobile = window.innerWidth < 600;
+              // Tốc độ điều chỉnh:
+              // Khi đang chạy chữ 1 câu chúc: cuộn rất chậm để người đọc theo kịp nét chữ (18px/s mobile, 11px/s desktop)
+              // Khi chuyển tiếp giữa các câu hoặc chưa tới câu mới: 30px/s mobile, 18px/s desktop
+              let speed;
+              if (isCurrentlyTyping) {
+                speed = isMobile ? 18 : 11;
+              } else {
+                speed = isMobile ? 30 : 18;
+              }
+
+              const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+              if (window.scrollY < maxScroll - 2) {
+                currentScrollY += speed * dt;
+                window.scrollTo(0, currentScrollY);
+              } else {
+                // Đã cuộn đến đáy trang (lời kết & nút đóng)
+                stopAutoScroll();
+                return;
+              }
             } else {
+              currentScrollY = window.scrollY;
+            }
+
+            // Kiểm tra và kích hoạt câu chúc kế tiếp trong tầm mắt
+            checkWishesInView();
+
+            autoScrollRaf = requestAnimationFrame(roll);
+          }
+          autoScrollRaf = requestAnimationFrame(roll);
+        }, initialDelay);
+      }
+
+      function onUserManualScroll() {
+        checkWishesInView();
+        if (!isAutoScrolling) return;
+        isUserTouching = true;
+        currentScrollY = window.scrollY;
+        if (userPauseTimer) clearTimeout(userPauseTimer);
+        // Tạm dừng khi người dùng chủ động chạm/lăn chuột, sau 3.5s sẽ tiếp tục cuộn nhẹ
+        userPauseTimer = setTimeout(() => {
+          isUserTouching = false;
+          currentScrollY = window.scrollY;
+        }, 3500);
+      }
+
+      ['wheel', 'touchmove', 'touchstart'].forEach(evt => {
+        window.addEventListener(evt, onUserManualScroll, { passive: true });
+      });
+      window.addEventListener('touchend', () => {
+        if (userPauseTimer) clearTimeout(userPauseTimer);
+        userPauseTimer = setTimeout(() => {
+          isUserTouching = false;
+          currentScrollY = window.scrollY;
+        }, 3000);
+      }, { passive: true });
+      window.addEventListener('scroll', checkWishesInView, { passive: true });
+
+      // --- CƠ CHẾ GÕ CHỮ TUẦN TỰ (SEQUENTIAL QUEUE) THEO TẦM MẮT ---
+      function resetWishes() {
+        isCurrentlyTyping = false;
+        currentTypingWish = null;
+        if (wishNextTimer) {
+          clearTimeout(wishNextTimer);
+          wishNextTimer = null;
+        }
+        const wishes = document.querySelectorAll('.wish');
+        wishes.forEach(wish => {
+          wish.dataset.typed = 'false';
+          wish.dataset.typing = 'false';
+          wish.classList.remove('reading');
+          const line = wish.querySelector('.typed-line');
+          if (line) {
+            line.textContent = '';
+            line.classList.remove('typing', 'done');
+          }
+        });
+      }
+
+      function typeSingleWish(wishCard) {
+        if (!wishCard || wishCard.dataset.typed === 'true' || wishCard.dataset.typing === 'true') return;
+        if (isCurrentlyTyping) return; // Bảo vệ nghiêm ngặt: chỉ 1 câu chúc chạy tại một thời điểm
+
+        const line = wishCard.querySelector('.typed-line');
+        if (!line) return;
+
+        isCurrentlyTyping = true;
+        currentTypingWish = wishCard;
+        wishCard.dataset.typing = 'true';
+        wishCard.classList.add('reading');
+        line.classList.add('typing');
+        line.classList.remove('done');
+        line.textContent = '';
+
+        const text = line.dataset.text || '';
+        let charIndex = 0;
+
+        function stepChar() {
+          if (!isOpen) {
+            isCurrentlyTyping = false;
+            currentTypingWish = null;
+            return;
+          }
+
+          // Nếu người nhận lướt vội làm thẻ này trôi hẳn lên trên đỉnh màn hình
+          const rect = wishCard.getBoundingClientRect();
+          if (rect.bottom < 60) {
+            line.textContent = text;
+            line.classList.remove('typing');
+            line.classList.add('done');
+            wishCard.dataset.typing = 'false';
+            wishCard.dataset.typed = 'true';
+            wishCard.classList.remove('reading');
+            isCurrentlyTyping = false;
+            currentTypingWish = null;
+            // Kích hoạt kiểm tra ngay câu tiếp theo đang trong tầm mắt
+            checkWishesInView();
+            return;
+          }
+
+          if (charIndex < text.length) {
+            line.textContent += text.charAt(charIndex++);
+            setTimeout(stepChar, reducedMotion ? 0 : 21);
+          } else {
+            // Đã hoàn thành câu chúc hiện tại
+            line.classList.remove('typing');
+            line.classList.add('done');
+            wishCard.dataset.typing = 'false';
+            wishCard.dataset.typed = 'true';
+            setTimeout(() => {
+              wishCard.classList.remove('reading');
+            }, 450);
+
+            isCurrentlyTyping = false;
+            currentTypingWish = null;
+
+            // Nghỉ nhẹ 320ms giữa 2 câu chúc rồi kích hoạt tuần tự câu tiếp theo nếu đang trong tầm mắt
+            if (wishNextTimer) clearTimeout(wishNextTimer);
+            wishNextTimer = setTimeout(() => {
+              if (isOpen) checkWishesInView();
+            }, 320);
+          }
+        }
+        stepChar();
+      }
+
+      function checkWishesInView() {
+        if (!isOpen) return;
+        const wishes = document.querySelectorAll('.wish');
+        const vh = window.innerHeight;
+
+        // 1. Tự động điền hoàn tất các câu chúc đã bị người dùng cuộn vượt hẳn lên phía trên màn hình
+        wishes.forEach(wish => {
+          if (wish.dataset.typed === 'true') return;
+          const rect = wish.getBoundingClientRect();
+          if (rect.bottom < 60) {
+            const line = wish.querySelector('.typed-line');
+            if (line) {
+              line.textContent = line.dataset.text || '';
               line.classList.remove('typing');
               line.classList.add('done');
-              lineIndex++;
-              setTimeout(typeNextLine, reducedMotion ? 0 : 220);
+            }
+            wish.dataset.typed = 'true';
+            wish.dataset.typing = 'false';
+            wish.classList.remove('reading');
+            if (currentTypingWish === wish) {
+              isCurrentlyTyping = false;
+              currentTypingWish = null;
             }
           }
-          typeChar();
+        });
+
+        // 2. NẾU ĐANG CÓ CÂU CHÚC ĐANG CHẠY CHỮ THÌ CHỜ — TUYỆT ĐỐI KHÔNG CHO PHÉP NHIỀU CÂU CHẠY CÙNG LÚC!
+        if (isCurrentlyTyping) return;
+
+        // 3. DUYỆT TUẦN TỰ TỪ TRÊN XUỐNG DƯỚI: Tìm câu chúc đầu tiên chưa hoàn thành
+        for (let i = 0; i < wishes.length; i++) {
+          const wish = wishes[i];
+          if (wish.dataset.typed === 'true') continue;
+
+          const rect = wish.getBoundingClientRect();
+          // Điều kiện lọt vào tầm mắt đọc (từ 80% chiều cao màn hình trở lên và chưa bị khuất phía trên)
+          if (rect.top <= vh * 0.80 && rect.bottom >= 60) {
+            typeSingleWish(wish);
+            // CỰC KỲ QUAN TRỌNG: break ngay lập tức để chỉ chạy duy nhất câu này!
+            // Dù trên màn hình có 2 hay 3 câu chúc cùng lúc, các câu sau bắt buộc phải chờ câu này chạy xong!
+            break;
+          } else if (rect.top > vh * 0.80) {
+            // Thẻ này còn ở tít bên dưới chưa tới tầm mắt, dừng duyệt vì các thẻ sau nó cũng ở dưới
+            break;
+          }
         }
-        setTimeout(typeNextLine, reducedMotion ? 0 : 450);
       }
+
+
       function openCard() {
         if (isOpen) return;
         isOpen = true;
+        resetWishes();
         app.classList.add('opening');
         setTimeout(() => {
           if (isOpen) {
@@ -1406,7 +1624,15 @@
         $('#introText').textContent = 'Chúc mừng ngày đặc biệt của các chị và các bạn';
         celebration(true);
         setTimeout(() => burst(W / 2, H * .52, 130, true), 350);
-        typeWishes();
+        
+        // Đợi 2.6s để người đọc xem xong tiêu đề, sau đó bắt đầu cuộn và kích hoạt gõ chữ khi tới câu chúc
+        startAutoScroll(2600);
+
+        // Kích hoạt kiểm tra câu chúc đầu tiên nếu đã lọt vào tầm mắt sau khi mở thiệp
+        setTimeout(() => {
+          if (isOpen) checkWishesInView();
+        }, 2200);
+
         const music = $('#bgMusic');
         const mp = $('#musicPanel');
         if (mp) mp.classList.add('visible');
@@ -1422,8 +1648,12 @@
           }
         }
       }
+
       function closeCard() {
         if (!isOpen) return;
+        stopAutoScroll();
+        if (wishNextTimer) { clearTimeout(wishNextTimer); wishNextTimer = null; }
+        resetWishes();
         const music = $('#bgMusic');
         if (music) { music.pause(); music.currentTime = 12; updateMusicUI(false); }
         const mp = $('#musicPanel');
@@ -1435,6 +1665,7 @@
         for (let i = 0; i < 45; i++)particles.push(new Particle(rand(W * .25, W * .75), rand(H * .2, H * .55), 'heart'));
         window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
       }
+
       envelope.addEventListener('click', openCard);
       $('#closeCard').addEventListener('click', closeCard);
       envelope.addEventListener('pointerdown', e => {
